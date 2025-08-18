@@ -1,0 +1,94 @@
+// Inclui a biblioteca para o display LCD I2C
+#include <LiquidCrystal_I2C.h>
+
+// Definição dos pinos do sensor TCS3200
+#define S0 8
+#define S1 9
+#define S2 12
+#define S3 11
+#define LED_SCL 10 // LED do sensor (habilitado por padrão em alguns modelos)
+#define OUT 13
+
+// Definição do endereço I2C do LCD (geralmente é 0x27 ou 0x3F)
+// Se o seu LCD não funcionar, tente o outro endereço.
+// A quantidade de colunas (16) e linhas (2) também é importante.
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Variáveis para armazenar as leituras de cor
+int red = 0;
+int green = 0;
+int blue = 0;
+
+void setup() {
+  // Configura a comunicação serial para debug (opcional)
+  Serial.begin(9600);
+  
+  // Configura os pinos do sensor como saída
+  pinMode(S0, OUTPUT);
+  pinMode(S1, OUTPUT);
+  pinMode(S2, OUTPUT);
+  pinMode(S3, OUTPUT);
+  pinMode(LED_SCL, OUTPUT);
+  
+  // Configura o pino de saída do sensor como entrada
+  pinMode(OUT, INPUT);
+  
+  // Configura a frequência do sensor para 20%
+  digitalWrite(S0, HIGH);
+  digitalWrite(S1, LOW);
+  
+  // Ativa o LED do sensor (se o seu módulo tiver um)
+  digitalWrite(LED_SCL, HIGH);
+
+  // Inicializa o display LCD
+  lcd.init();
+  lcd.backlight(); // Ativa a luz de fundo do LCD
+  
+  // Mensagem de boas-vindas na tela
+  lcd.setCursor(0, 0);
+  lcd.print("Sensor de Cor");
+  lcd.setCursor(0, 1);
+  lcd.print("TCS3200 + I2C");
+  delay(2000);
+
+}
+
+void loop() {
+  // Lê a cor Vermelha
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, LOW);
+  red = pulseIn(OUT, LOW);
+  
+  // Lê a cor Verde
+  digitalWrite(S2, HIGH);
+  digitalWrite(S3, HIGH);
+  green = pulseIn(OUT, LOW);
+  
+  // Lê a cor Azul
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, HIGH);
+  blue = pulseIn(OUT, LOW);
+
+  // Limpa a tela e exibe as leituras
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("R:");
+  lcd.print(red);
+  lcd.print(" G:");
+  lcd.print(green);
+  lcd.print(" B:");
+  lcd.print(blue);
+
+  // Aumenta a clareza da leitura da viabilidade celular
+  // O valor 255 é apenas um exemplo, você precisará calibrá-lo
+  // com a sua solução para determinar o valor de transição.
+  lcd.setCursor(0, 1);
+  if (red > 255) { // Supondo que o valor para a cor azul é alto
+    lcd.print("CELULA MORTA");
+  } else {
+    lcd.print("CELULA VIVA!!");
+  }
+  
+  delay(1000); // Aguarda 1 segundo antes da próxima leitura
+
+}
